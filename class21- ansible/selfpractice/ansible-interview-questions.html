@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ansible Interview Questions</title>
+<style>
+:root{--bg:#f3f6f4;--card:#fff;--ink:#17252a;--muted:#546a6f;--line:#d5e0dc;--accent:#0f6b63;--code:#10262b;--codeink:#c9f0e6}
+@media (prefers-color-scheme:dark){:root{--bg:#0f1a1d;--card:#16262a;--ink:#e4efec;--muted:#93aaa8;--line:#294146;--accent:#4fd1bf;--code:#0a1416;--codeink:#c9f0e6}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 Georgia,"Times New Roman",serif}
+header{max-width:760px;margin:0 auto;padding:56px 20px 24px}
+h1{font:700 2.4rem/1.15 "Trebuchet MS",Verdana,sans-serif;margin:0 0 10px}
+header p{color:var(--muted);margin:0}
+main{max-width:760px;margin:0 auto;padding:0 20px 64px}
+details{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--accent);border-radius:6px;margin:12px 0}
+summary{cursor:pointer;padding:14px 18px;font:600 1.02rem/1.4 "Trebuchet MS",Verdana,sans-serif;list-style-position:inside}
+summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.a{padding:0 18px 16px}
+.a p{margin:8px 0}
+pre{background:var(--code);color:var(--codeink);padding:12px 14px;border-radius:5px;overflow-x:auto;font:13.5px/1.5 Consolas,Menlo,monospace;margin:10px 0}
+code{font-family:Consolas,Menlo,monospace;font-size:.92em}
+.a ul{margin:6px 0;padding-left:22px}
+.tools{display:flex;gap:10px;margin:18px 0 6px}
+button{font:600 .9rem "Trebuchet MS",sans-serif;padding:8px 14px;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:5px;cursor:pointer}
+button:hover{background:var(--accent);color:var(--bg)}
+</style>
+</head>
+<body>
+<header>
+<h1>30 Ansible Interview Questions</h1>
+<p>Core concepts, commands and playbook basics, with short answers.</p>
+<div class="tools"><button onclick="t(true)">Expand all</button><button onclick="t(false)">Collapse all</button></div>
+</header>
+<main>
+
+<details><summary>1. What is Ansible?</summary><div class="a"><p>Ansible is an open-source automation tool for configuration management, application deployment and orchestration. It is agentless and uses YAML playbooks to describe the desired state of systems.</p></div></details>
+
+<details><summary>2. Why is Ansible called agentless?</summary><div class="a"><p>Nothing needs to be installed on managed nodes. Ansible connects over SSH (Linux) or WinRM (Windows) and runs modules temporarily, then removes them.</p></div></details>
+
+<details><summary>3. What are the main components of Ansible?</summary><div class="a"><ul><li><b>Control node:</b> where Ansible runs</li><li><b>Managed nodes:</b> target hosts</li><li><b>Inventory:</b> list of hosts</li><li><b>Modules:</b> units of work</li><li><b>Playbooks:</b> YAML automation files</li><li><b>Roles, plugins, variables, facts</b></li></ul></div></details>
+
+<details><summary>4. What is an inventory file?</summary><div class="a"><p>A file listing the hosts and groups Ansible manages. It can be INI or YAML and static or dynamic. Default path: <code>/etc/ansible/hosts</code>.</p>
+<pre>[web]
+web1.example.com
+web2.example.com
+
+[db]
+db1.example.com ansible_user=admin</pre></div></details>
+
+<details><summary>5. What is a playbook?</summary><div class="a"><p>A YAML file containing one or more plays. Each play maps a group of hosts to a list of tasks.</p>
+<pre>---
+- name: Install nginx
+  hosts: web
+  become: yes
+  tasks:
+    - name: Install package
+      ansible.builtin.apt:
+        name: nginx
+        state: present</pre></div></details>
+
+<details><summary>6. What is a module in Ansible?</summary><div class="a"><p>A module is a small program that performs a specific task, such as <code>apt</code>, <code>copy</code>, <code>service</code> or <code>user</code>. Tasks call modules with arguments.</p></div></details>
+
+<details><summary>7. What is the difference between a task and a play?</summary><div class="a"><p>A task is a single call to a module. A play is a set of tasks applied to a group of hosts. A playbook contains one or more plays.</p></div></details>
+
+<details><summary>8. What is idempotency?</summary><div class="a"><p>Running the same playbook repeatedly gives the same result without unwanted changes. If the system is already in the desired state, Ansible reports <code>ok</code> instead of <code>changed</code>.</p></div></details>
+
+<details><summary>9. What is the difference between ad-hoc commands and playbooks?</summary><div class="a"><p>Ad-hoc commands are one-line tasks for quick jobs; playbooks are reusable, version-controlled files for repeatable automation.</p>
+<pre>ansible all -m ping
+ansible web -m service -a "name=nginx state=restarted" -b</pre></div></details>
+
+<details><summary>10. What is <code>become</code> in Ansible?</summary><div class="a"><p>It enables privilege escalation (like <code>sudo</code>). Use <code>become: yes</code> at play or task level, and <code>become_user</code> to pick the target user.</p></div></details>
+
+<details><summary>11. What are handlers?</summary><div class="a"><p>Handlers are tasks that run only when notified by another task that reported a change. They run once at the end of the play, commonly used to restart services.</p>
+<pre>tasks:
+  - name: Update config
+    ansible.builtin.template:
+      src: nginx.conf.j2
+      dest: /etc/nginx/nginx.conf
+    notify: Restart nginx
+handlers:
+  - name: Restart nginx
+    ansible.builtin.service:
+      name: nginx
+      state: restarted</pre></div></details>
+
+<details><summary>12. What are variables and how are they defined?</summary><div class="a"><p>Variables store values for reuse. They can be defined in playbooks (<code>vars</code>), inventory, <code>group_vars</code>, <code>host_vars</code>, external files (<code>vars_files</code>), or on the command line with <code>-e</code>.</p></div></details>
+
+<details><summary>13. What is variable precedence?</summary><div class="a"><p>When a variable is defined in several places, the higher-priority one wins. Roughly, from low to high: role defaults, inventory vars, group_vars, host_vars, play vars, task vars, and finally extra vars (<code>-e</code>), which always win.</p></div></details>
+
+<details><summary>14. What are facts?</summary><div class="a"><p>Facts are system details (OS, IP, memory, CPU) gathered automatically by the <code>setup</code> module at the start of a play. Access them like <code>ansible_facts['os_family']</code>. Disable with <code>gather_facts: no</code>.</p></div></details>
+
+<details><summary>15. What is a role?</summary><div class="a"><p>A role is a standard directory structure for organizing tasks, handlers, templates, files, variables and defaults so automation can be reused and shared.</p>
+<pre>ansible-galaxy init myrole
+myrole/
+  tasks/ handlers/ templates/
+  files/ vars/ defaults/ meta/</pre></div></details>
+
+<details><summary>16. What is Ansible Galaxy?</summary><div class="a"><p>A hub for sharing roles and collections. Install with <code>ansible-galaxy install username.rolename</code> or <code>ansible-galaxy collection install namespace.name</code>.</p></div></details>
+
+<details><summary>17. What is a template and which language does it use?</summary><div class="a"><p>Templates are files (usually <code>.j2</code>) that use Jinja2 to insert variables and logic into config files, rendered by the <code>template</code> module.</p>
+<pre>server_name {{ server_name }};
+listen {{ http_port | default(80) }};</pre></div></details>
+
+<details><summary>18. What is the difference between <code>copy</code> and <code>template</code> modules?</summary><div class="a"><p><code>copy</code> transfers a file as-is. <code>template</code> processes a Jinja2 file with variables before transferring it.</p></div></details>
+
+<details><summary>19. How do loops work in Ansible?</summary><div class="a"><p>Use the <code>loop</code> keyword (older: <code>with_items</code>) and reference each item with <code>{{ item }}</code>.</p>
+<pre>- name: Install packages
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+  loop: [git, curl, vim]</pre></div></details>
+
+<details><summary>20. How do you use conditionals?</summary><div class="a"><p>Use the <code>when</code> keyword with a Jinja2 expression (no braces needed).</p>
+<pre>- name: Install Apache on Debian
+  ansible.builtin.apt:
+    name: apache2
+  when: ansible_facts['os_family'] == "Debian"</pre></div></details>
+
+<details><summary>21. What is Ansible Vault?</summary><div class="a"><p>A feature to encrypt sensitive data such as passwords and keys.</p>
+<pre>ansible-vault create secrets.yml
+ansible-vault edit secrets.yml
+ansible-vault encrypt / decrypt file.yml
+ansible-playbook site.yml --ask-vault-pass</pre></div></details>
+
+<details><summary>22. What is the difference between <code>command</code>, <code>shell</code> and <code>raw</code> modules?</summary><div class="a"><ul><li><b>command:</b> runs a command without a shell (no pipes or redirects); default and safest</li><li><b>shell:</b> runs through <code>/bin/sh</code>, so pipes and variables work</li><li><b>raw:</b> sends a raw SSH command; needs no Python on the target</li></ul></div></details>
+
+<details><summary>23. How do you check a playbook before running it?</summary><div class="a"><pre>ansible-playbook site.yml --syntax-check
+ansible-playbook site.yml --check          # dry run
+ansible-playbook site.yml --check --diff   # show changes
+ansible-lint site.yml</pre></div></details>
+
+<details><summary>24. What are tags?</summary><div class="a"><p>Tags label tasks so you can run or skip parts of a playbook.</p>
+<pre>ansible-playbook site.yml --tags "install"
+ansible-playbook site.yml --skip-tags "config"</pre></div></details>
+
+<details><summary>25. What does <code>register</code> do?</summary><div class="a"><p>It stores a task's result in a variable for later use, such as in conditionals or debug output.</p>
+<pre>- ansible.builtin.command: whoami
+  register: result
+- ansible.builtin.debug:
+    var: result.stdout</pre></div></details>
+
+<details><summary>26. How do you handle errors in a playbook?</summary><div class="a"><ul><li><code>ignore_errors: yes</code> continues after a failure</li><li><code>failed_when</code> defines custom failure conditions</li><li><code>block / rescue / always</code> works like try/catch/finally</li></ul></div></details>
+
+<details><summary>27. What is the difference between <code>include_tasks</code> and <code>import_tasks</code>?</summary><div class="a"><p><code>import_tasks</code> is static: processed when the playbook is parsed. <code>include_tasks</code> is dynamic: processed at runtime, so it works with loops and runtime variables.</p></div></details>
+
+<details><summary>28. What is the purpose of <code>ansible.cfg</code>?</summary><div class="a"><p>It holds default settings such as inventory path, remote user, forks and privilege escalation. Ansible reads the first found of: <code>ANSIBLE_CONFIG</code> variable, <code>./ansible.cfg</code>, <code>~/.ansible.cfg</code>, <code>/etc/ansible/ansible.cfg</code>.</p></div></details>
+
+<details><summary>29. What are dynamic inventories?</summary><div class="a"><p>Inventories generated at runtime from a source such as AWS, Azure or GCP using inventory plugins or scripts, so host lists stay current without manual edits.</p></div></details>
+
+<details><summary>30. What is the difference between Ansible and Puppet/Chef?</summary><div class="a"><ul><li>Ansible is agentless (SSH); Puppet and Chef usually need agents</li><li>Ansible uses YAML; Puppet uses its own DSL and Chef uses Ruby</li><li>Ansible is push-based by default; Puppet and Chef are pull-based</li><li>Ansible has a lower learning curve</li></ul></div></details>
+
+</main>
+<script>function t(o){document.querySelectorAll('details').forEach(d=>d.open=o)}</script>
+</body>
+</html>
